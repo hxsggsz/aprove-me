@@ -6,6 +6,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PrismaAssignorRepository implements AssignorRepository {
+  constructor(private db: PrismaService) {}
 
   public async create(assignor: Assignor): Promise<Assignor> {
     const rawData = PrismaAssignorMapper.toPrisma(assignor);

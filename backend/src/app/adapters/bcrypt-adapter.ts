@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { BcryptAdapterRepository } from '@/app/repositories/bcrypt-adapter-repository';
-import { genSalt, hash, compare } from 'bcrypt';
+import { genSalt, hash, compare } from 'bcryptjs';
 
 @Injectable()
 export class BcryptAdapter implements BcryptAdapterRepository {

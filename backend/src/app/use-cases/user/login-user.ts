@@ -19,7 +19,7 @@ export class LoginUser {
     private userRepository: UserRepository,
     private bcryptAdapter: BcryptAdapterRepository,
     private jwtAdapterRepository: JwtAdapterRepository,
-  ) { }
+  ) {}
 
   async execute(input: Input): Promise<Output> {
     const findUser = await this.userRepository.findByLogin(input.login);
