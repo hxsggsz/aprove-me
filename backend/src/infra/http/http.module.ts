@@ -16,6 +16,7 @@ import { AdaptersModule } from '@/app/adapters/adapters.module';
 import { LoginUser } from '@/app/use-cases/user/login-user';
 import { FindAll } from '@/app/use-cases/payable/find-all';
 import { FindAllAssingors } from '@/app/use-cases/assignor/find-all';
+import { BatchAddNewPayable } from '@/app/use-cases/payable/batch-add-payables';
 
 const assignorUseCases = [
   AddNewAssignor,
@@ -27,6 +28,7 @@ const assignorUseCases = [
 
 const payableUseCases = [
   AddNewPayable,
+  BatchAddNewPayable,
   FindAll,
   FindPayableById,
   EditPayable,
@@ -40,4 +42,4 @@ const userUseCases = [AddNewUser, LoginUser];
   providers: [...assignorUseCases, ...payableUseCases, ...userUseCases],
   controllers: [PayableController, AssignorController, UserController],
 })
-export class HttpModule { }
+export class HttpModule {}
