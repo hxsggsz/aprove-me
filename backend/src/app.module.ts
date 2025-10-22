@@ -5,9 +5,16 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from '@/utils/auth-guard';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
+    BullModule.forRoot({
+      redis: process.env.REDIS_HOST,
+      defaultJobOptions: {
+        attempts: 3,
+      },
+    }),
     HttpModule,
     ConfigModule.forRoot(),
     JwtModule.register({

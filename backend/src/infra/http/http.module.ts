@@ -17,6 +17,10 @@ import { LoginUser } from '@/app/use-cases/user/login-user';
 import { FindAll } from '@/app/use-cases/payable/find-all';
 import { FindAllAssingors } from '@/app/use-cases/assignor/find-all';
 import { BatchAddNewPayable } from '@/app/use-cases/payable/batch-add-payables';
+import { BullModule } from '@nestjs/bull';
+import { QueueNames } from '@/utils/queues';
+import { queueConsumers } from './queues';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 const assignorUseCases = [
   AddNewAssignor,
@@ -38,8 +42,29 @@ const payableUseCases = [
 const userUseCases = [AddNewUser, LoginUser];
 
 @Module({
-  imports: [AdaptersModule, DatabaseModule],
-  providers: [...assignorUseCases, ...payableUseCases, ...userUseCases],
+  imports: [
+    AdaptersModule,
+    DatabaseModule,
+    BullModule.registerQueue({ name: QueueNames.PAYABLES }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        secure: false,
+        port: 587,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+        ignoreTLS: true,
+      },
+    }),
+  ],
+  providers: [
+    ...queueConsumers,
+    ...assignorUseCases,
+    ...payableUseCases,
+    ...userUseCases,
+  ],
   controllers: [PayableController, AssignorController, UserController],
 })
 export class HttpModule {}
