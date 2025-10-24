@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum BatchPayableStatus {
+  PROCESSING
+  COMPLETED
+}
+
 model User {
   id       String @id @default(uuid())
   login    String
@@ -19,18 +24,34 @@ model User {
   @@map("users")
 }
 
+model Batch {
+  id            String             @id @default(uuid())
+  userId        String
+  totalJobs     Int
+  completedJobs Int                @default(0)
+  successJobs   Int                @default(0)
+  failedJobs    Int                @default(0)
+  status        BatchPayableStatus @default(PROCESSING)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  results Payable[]
+}
+
 model Payable {
   id           String   @id @default(uuid())
   value        Float
   emissionDate DateTime
 
   assignorId String
+  batchId    String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   assingor Assignor @relation(fields: [assignorId], references: [id])
+  Batch    Batch?   @relation(fields: [batchId], references: [id])
 
   @@map("payables")
 }

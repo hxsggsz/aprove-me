@@ -7,10 +7,12 @@ import { AssignorRepository } from '@/app/repositories/assignor.repository';
 import { PayableRepository } from '@/app/repositories/payable.repository';
 import { Input } from './add-payable.dto';
 import { PayableQueue } from './queueNames';
+import { BatchRepository } from '@/app/repositories/batch.repository';
 
 @Processor(QueueNames.PAYABLES)
 export class AddPayable {
   constructor(
+    private batchRepository: BatchRepository,
     private payableRepository: PayableRepository,
     private assignorRepository: AssignorRepository,
 
@@ -22,6 +24,8 @@ export class AddPayable {
   async process(job: Job<Input>): Promise<void> {
     const { data } = job;
 
+    let status: 'SUCCESS' | 'FAILED';
+
     console.log('Processing job:', job.id, 'with data:', job.data);
     const findAssignor = await this.assignorRepository.findById(
       data.assignorId,
@@ -29,13 +33,27 @@ export class AddPayable {
 
     if (!findAssignor) throw new AssignorNotFound();
 
-    const newPayable = new Payable(data);
-    await this.payableRepository.create(newPayable);
+    try {
+      const newPayable = new Payable(data);
+      await this.payableRepository.create(newPayable);
 
-    console.log(`Processed job: ${job.id} - sending notification...`);
+      status = 'SUCCESS';
+    } catch (error) {
+      status = 'FAILED';
+    }
 
-    await this.queue.add(PayableQueue.SEND_NOTIFICATION, {
-      assignorId: data.assignorId,
-    });
+    console.log(`Processed job: ${job.id}`);
+
+    const batch = await this.batchRepository.incrementCompleted(
+      data.batchId,
+      status,
+    );
+
+    // TODO: change this to an event to notify the user and the event has to send to another job queue to send email
+    if (batch.props.completedJobs === batch.props.totalJobs) {
+      await this.queue.add(PayableQueue.SEND_NOTIFICATION, {
+        assignorId: data.assignorId,
+      });
+    }
   }
 }

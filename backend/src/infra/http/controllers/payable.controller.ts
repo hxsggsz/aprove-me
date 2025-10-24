@@ -6,6 +6,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
 } from '@nestjs/common';
 import {
   BatchCreatePayableDTO,
@@ -39,8 +40,14 @@ export class PayableController {
   }
 
   @Post('batch')
-  async batchCreate(@Body() body: BatchCreatePayableDTO) {
-    await this.batchAddNewPayable.execute(body.payables);
+  async batchCreate(
+    @Req() request: Request,
+    @Body() body: BatchCreatePayableDTO,
+  ) {
+    console.log('user: ', request['user']);
+    const userId = request['user']['sub'];
+
+    await this.batchAddNewPayable.execute({ userId, payables: body.payables });
   }
 
   @Get()

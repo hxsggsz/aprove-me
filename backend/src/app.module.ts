@@ -12,7 +12,7 @@ import { BullModule } from '@nestjs/bull';
     BullModule.forRoot({
       redis: process.env.REDIS_HOST,
       defaultJobOptions: {
-        attempts: 3,
+        attempts: 1,
       },
     }),
     HttpModule,

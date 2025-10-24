@@ -55,7 +55,7 @@ const userUseCases = [AddNewUser, LoginUser];
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
-        ignoreTLS: true,
+        ignoreTLS: false,
       },
     }),
   ],
