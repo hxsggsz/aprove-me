@@ -24,7 +24,6 @@ import { BullModule } from '@nestjs/bull';
     }),
     DatabaseModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,

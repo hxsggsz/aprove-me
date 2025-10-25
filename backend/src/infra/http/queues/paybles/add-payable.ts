@@ -8,6 +8,7 @@ import { PayableRepository } from '@/app/repositories/payable.repository';
 import { Input } from './add-payable.dto';
 import { PayableQueue } from './queueNames';
 import { BatchRepository } from '@/app/repositories/batch.repository';
+import { InvalidPayable } from '@/app/errors/invalid-payable';
 
 @Processor(QueueNames.PAYABLES)
 export class AddPayable {
@@ -35,6 +36,13 @@ export class AddPayable {
 
     try {
       const newPayable = new Payable(data);
+
+      const invalidPayable = newPayable.props.value <= 1000;
+
+      if (invalidPayable) {
+        throw new InvalidPayable();
+      }
+
       await this.payableRepository.create(newPayable);
 
       status = 'SUCCESS';
@@ -49,10 +57,9 @@ export class AddPayable {
       status,
     );
 
-    // TODO: change this to an event to notify the user and the event has to send to another job queue to send email
     if (batch.props.completedJobs === batch.props.totalJobs) {
       await this.queue.add(PayableQueue.SEND_NOTIFICATION, {
-        assignorId: data.assignorId,
+        batchId: batch._id,
       });
     }
   }

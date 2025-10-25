@@ -7,6 +7,16 @@ import { PrismaBatchMapper } from '../mappers/batch';
 @Injectable()
 export class PrismaBatchRepository implements BatchRepository {
   constructor(private db: PrismaService) {}
+  public async findById(batchId: string): Promise<Batch | null> {
+    const findBatch = await this.db.batch.findFirst({
+      where: { id: batchId },
+    });
+
+    if (!findBatch) return null;
+
+    return PrismaBatchMapper.toDomain(findBatch);
+  }
+
   public async create(batch: Batch): Promise<Batch> {
     const rawData = PrismaBatchMapper.toPrisma(batch);
     const newBatch = await this.db.batch.create({
