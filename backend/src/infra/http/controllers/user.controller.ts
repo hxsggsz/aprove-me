@@ -15,9 +15,9 @@ export class UserController {
   @Post()
   @SkipAuth()
   async create(@Body() body: AddNewUserDTO) {
-    const { user } = await this.addNewUser.execute(body);
+    await this.addNewUser.execute(body);
 
-    return user;
+    return { message: 'User created successfully' };
   }
 
   @SkipAuth()
