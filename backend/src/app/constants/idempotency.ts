@@ -1,0 +1,6 @@
+export const IDEMPOTENCY_TTL_SECONDS = 3600;
+
+export enum IdempotencyOperation {
+  CREATE_PAYABLE = 'CREATE_PAYABLE',
+  CREATE_BATCH_PAYABLE = 'CREATE_BATCH_PAYABLE',
+}

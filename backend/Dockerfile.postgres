@@ -1,4 +1,4 @@
-FROM postgres:latest
+FROM postgres:16-alpine
 
 # Adicione configurações personalizadas do PostgreSQL aqui, se necessário
 # COPY postgresql.conf /etc/postgresql/postgresql.conf

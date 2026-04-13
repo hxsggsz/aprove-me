@@ -21,6 +21,11 @@ import { DeletePayable } from '@/app/use-cases/payable/delete-payable';
 import { FindAll } from '@/app/use-cases/payable/find-all';
 import { FindAllDTO } from '../dto/payable/find-all.dto';
 import { BatchAddNewPayable } from '@/app/use-cases/payable/batch-add-payables';
+import { IdempotencyService } from '@/app/services/idempotency-service';
+import {
+  IdempotencyOperation,
+  IDEMPOTENCY_TTL_SECONDS,
+} from '@/app/constants/idempotency';
 
 @Controller('payable')
 export class PayableController {
@@ -31,11 +36,36 @@ export class PayableController {
     private findAll: FindAll,
     private editPayable: EditPayable,
     private deletePayable: DeletePayable,
+    private idempotencyService: IdempotencyService,
   ) {}
 
   @Post()
-  async create(@Body() body: CreatePayableDTO) {
+  async create(@Req() request: Request, @Body() body: CreatePayableDTO) {
+    const userId = request['user']['sub'];
+
+    const idempotencyKey = this.idempotencyService.generateKey(
+      userId,
+      IdempotencyOperation.CREATE_PAYABLE,
+      {
+        assignorId: body.assignorId,
+        emissionDate: body.emissionDate,
+        value: body.value,
+      },
+    );
+
+    const cached = await this.idempotencyService.check(idempotencyKey);
+    if (cached) {
+      return cached.response;
+    }
+
     const { newPayable } = await this.addNewPayable.execute(body);
+
+    await this.idempotencyService.save(
+      idempotencyKey,
+      { response: newPayable as unknown as object, statusCode: 201 },
+      IDEMPOTENCY_TTL_SECONDS,
+    );
+
     return newPayable;
   }
 
@@ -44,10 +74,32 @@ export class PayableController {
     @Req() request: Request,
     @Body() body: BatchCreatePayableDTO,
   ) {
-    console.log('user: ', request['user']);
     const userId = request['user']['sub'];
 
+    const batchPayload = body.payables.map((p) => ({
+      assignorId: p.assignorId,
+      emissionDate: p.emissionDate,
+      value: p.value,
+    }));
+
+    const idempotencyKey = this.idempotencyService.generateKey(
+      userId,
+      IdempotencyOperation.CREATE_BATCH_PAYABLE,
+      batchPayload,
+    );
+
+    const cached = await this.idempotencyService.check(idempotencyKey);
+    if (cached) {
+      return cached.response;
+    }
+
     await this.batchAddNewPayable.execute({ userId, payables: body.payables });
+
+    await this.idempotencyService.save(
+      idempotencyKey,
+      { response: { message: 'batch processing started' }, statusCode: 200 },
+      IDEMPOTENCY_TTL_SECONDS,
+    );
   }
 
   @Get()

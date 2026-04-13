@@ -57,7 +57,10 @@ export class AddPayable {
       status,
     );
 
-    if (batch.props.completedJobs === batch.props.totalJobs) {
+    const processedEveryPayables =
+      batch.props.completedJobs === batch.props.totalJobs;
+
+    if (processedEveryPayables) {
       await this.queue.add(PayableQueue.SEND_NOTIFICATION, {
         batchId: batch._id,
       });

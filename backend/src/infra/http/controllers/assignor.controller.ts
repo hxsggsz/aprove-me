@@ -16,7 +16,7 @@ export class AssignorController {
     private findAssignorById: FindAssignorById,
     private editAssignor: EditAssignor,
     private deleteAssignor: DeleteAssignor,
-  ) { }
+  ) {}
 
   @Post()
   async create(@Body() body: CreateAssignorDTO) {

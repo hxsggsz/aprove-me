@@ -21,6 +21,7 @@ import { BullModule } from '@nestjs/bull';
 import { QueueNames } from '@/utils/queues';
 import { queueConsumers } from './queues';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { IdempotencyService } from '@/app/services/idempotency-service';
 
 const assignorUseCases = [
   AddNewAssignor,
@@ -64,6 +65,7 @@ const userUseCases = [AddNewUser, LoginUser];
     ...assignorUseCases,
     ...payableUseCases,
     ...userUseCases,
+    IdempotencyService,
   ],
   controllers: [PayableController, AssignorController, UserController],
 })

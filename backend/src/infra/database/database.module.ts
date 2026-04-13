@@ -8,6 +8,8 @@ import { UserRepository } from '@/app/repositories/user.repository';
 import { PrismaUserRepository } from '@/infra/database/prisma/repositories/prisma-user-repository';
 import { BatchRepository } from '@/app/repositories/batch.repository';
 import { PrismaBatchRepository } from './prisma/repositories/prisma-batch-repository';
+import { IdempotencyRepository } from '@/app/repositories/idempotency.repository';
+import { RedisIdempotencyRepository } from '@/infra/database/redis/redis-idempotency-repository';
 
 @Module({
   providers: [
@@ -28,12 +30,19 @@ import { PrismaBatchRepository } from './prisma/repositories/prisma-batch-reposi
       provide: BatchRepository,
       useClass: PrismaBatchRepository,
     },
+    {
+      provide: IdempotencyRepository,
+      useFactory: () => {
+        return new RedisIdempotencyRepository(process.env.REDIS_HOST);
+      },
+    },
   ],
   exports: [
     AssignorRepository,
     PayableRepository,
     UserRepository,
     BatchRepository,
+    IdempotencyRepository,
   ],
 })
 export class DatabaseModule {}
